@@ -25,14 +25,15 @@ func TestIsDir(t *testing.T) {
 
 func TestRegularFilesInDir(t *testing.T) {
 	t.Run("list xpath files", func(t *testing.T) {
-		readdir, err := ioutil.ReadDir(".")
+		dir := "testdata/regular_files_in_dir"
+		readdir, err := ioutil.ReadDir(dir)
 		ts.OK(t, err)
 		var exp []string
 		for _, f := range readdir {
 			exp = append(exp, f.Name())
 		}
 
-		files, err := RegularFilesInDir(".")
+		files, err := RegularFilesInDir(dir)
 		ts.OK(t, err)
 
 		ts.Eq(t, exp, files)

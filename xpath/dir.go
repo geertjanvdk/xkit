@@ -34,3 +34,22 @@ func RegularFilesInDir(path string) ([]string, error) {
 	sort.Strings(l)
 	return l, nil
 }
+
+// FilesInDir returns file which are not directories found in directory path.
+func FilesInDir(path string) ([]string, error) {
+	entries, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var l []string
+	for _, f := range entries {
+		if f.Mode().IsDir() {
+			continue
+		}
+		l = append(l, f.Name())
+	}
+
+	sort.Strings(l)
+	return l, nil
+}

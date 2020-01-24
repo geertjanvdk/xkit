@@ -18,7 +18,7 @@ func linuxControlGroup() string {
 
 // InContainer returns true if the application is running within a container.
 func InContainer() bool {
-	if strings.HasPrefix(linuxControlGroup(), "/docker/") {
+	if strings.Contains(linuxControlGroup(), ":/docker/") {
 		return true
 	}
 	return false

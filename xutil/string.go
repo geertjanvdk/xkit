@@ -22,3 +22,24 @@ func IsZeroString(s interface{}) bool {
 func StringPtr(s string) *string {
 	return &s
 }
+
+// HasString returns true whether x is in slice a.
+func HasString(a []string, x string) bool {
+	l := len(a)
+	if l == 0 {
+		return false
+	}
+
+	if l == 1 {
+		return a[0] == x
+	}
+
+	// this is O(n) but OK for now
+	for _, e := range a {
+		if e == x {
+			return true
+		}
+	}
+
+	return false
+}

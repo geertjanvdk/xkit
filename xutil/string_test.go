@@ -3,6 +3,7 @@
 package xutil
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -40,4 +41,27 @@ func TestIsZeroString(t *testing.T) {
 func TestStringPtr(t *testing.T) {
 	rv := reflect.ValueOf(StringPtr("I should be pointer"))
 	ts.Assert(t, rv.Kind() == reflect.Ptr)
+}
+
+func TestHasString(t *testing.T) {
+	// x is the string we are looking for
+	x := "foo"
+
+	cases := []struct {
+		have []string
+		exp  bool
+	}{
+		{[]string{}, false},
+		{[]string{x}, true},
+		{[]string{"bar"}, false},
+		{[]string{"bar", "b", "a", "r"}, false},
+		{[]string{"bar", "b", x, "r"}, true},
+		{[]string{"bar", "b", "a", "r", x}, true},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("list len(%d) exp %v", len(c.have), c.exp), func(t *testing.T) {
+			ts.Eq(t, c.exp, HasString(c.have, x))
+		})
+	}
 }

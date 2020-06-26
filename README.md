@@ -20,4 +20,4 @@ However, features can be requested through Issues.
 
 ## License
 
-This software licensed under the terms of the MIT license (see LICENSE.txt).
+MIT licensed: see LICENSE.txt.

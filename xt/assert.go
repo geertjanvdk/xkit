@@ -1,6 +1,6 @@
 // Copyright (c) 2020, Geert JM Vanderkelen
 
-package ts
+package xt
 
 import "testing"
 

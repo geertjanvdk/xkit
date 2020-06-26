@@ -1,4 +1,3 @@
-module lab.scrum.pub/go/xkit
+module github.com/eventeneer/xkit
 
 go 1.13
-

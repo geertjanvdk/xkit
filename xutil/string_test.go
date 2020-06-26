@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"lab.scrum.pub/go/ts"
+	"github.com/eventeneer/xkit/xt"
 )
 
 func TestIsZeroString(t *testing.T) {
@@ -24,14 +24,14 @@ func TestIsZeroString(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("no panic", func(t *testing.T) {
-			ts.Eq(t, c.exp, IsZeroString(c.have))
+			xt.Eq(t, c.exp, IsZeroString(c.have))
 		})
 	}
 
 	panicCases := []interface{}{nil, 123, []byte("not bytes")}
 	for _, c := range panicCases {
 		t.Run("panic", func(t *testing.T) {
-			ts.Panics(t, func() {
+			xt.Panics(t, func() {
 				IsZeroString(c)
 			})
 		})
@@ -40,7 +40,7 @@ func TestIsZeroString(t *testing.T) {
 
 func TestStringPtr(t *testing.T) {
 	rv := reflect.ValueOf(StringPtr("I should be pointer"))
-	ts.Assert(t, rv.Kind() == reflect.Ptr)
+	xt.Assert(t, rv.Kind() == reflect.Ptr)
 }
 
 func TestHasString(t *testing.T) {
@@ -61,7 +61,7 @@ func TestHasString(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("list len(%d) exp %v", len(c.have), c.exp), func(t *testing.T) {
-			ts.Eq(t, c.exp, HasString(c.have, x))
+			xt.Eq(t, c.exp, HasString(c.have, x))
 		})
 	}
 }

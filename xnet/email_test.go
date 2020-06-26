@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"lab.scrum.pub/go/ts"
+	"github.com/eventeneer/xkit/xt"
 )
 
 func TestIsEmailAddress(t *testing.T) {
@@ -32,7 +32,7 @@ func TestIsEmailAddress(t *testing.T) {
 
 		for _, c := range cases {
 			t.Run("valid_"+c, func(t *testing.T) {
-				ts.Assert(t, IsEmailAddress(c), fmt.Sprintf("expected %s to be valid", c))
+				xt.Assert(t, IsEmailAddress(c), fmt.Sprintf("expected %s to be valid", c))
 			})
 		}
 	})
@@ -54,7 +54,7 @@ func TestIsEmailAddress(t *testing.T) {
 
 		for _, c := range cases {
 			t.Run("invalid_"+c, func(t *testing.T) {
-				ts.Assert(t, !IsEmailAddress(c), fmt.Sprintf("expected %s to be invalid", c))
+				xt.Assert(t, !IsEmailAddress(c), fmt.Sprintf("expected %s to be invalid", c))
 			})
 		}
 	})

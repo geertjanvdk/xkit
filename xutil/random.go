@@ -5,6 +5,7 @@ package xutil
 import (
 	"crypto/rand"
 	mathrand "math/rand"
+	"time"
 )
 
 // RandomBytes returns a n-length slice containing random bytes.
@@ -34,6 +35,7 @@ func RandomAlphaNumeric(n int) string {
 	const abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	buf := make([]byte, n)
+	mathrand.Seed(time.Now().UnixNano())
 	for i := range buf {
 		buf[i] = abc[mathrand.Intn(len(abc))]
 	}

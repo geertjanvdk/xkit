@@ -29,7 +29,7 @@ func newClientOptions() *clientOptions {
 }
 
 // WithBearer is a functional option to use with the factory function
-// NewClient. It sets the authorization bearer b which will be send
+// NewClient setting the authorization bearer b which will be send
 // as HTTP header with each request.
 func WithBearer(b string) ClientOption {
 	return func(options *clientOptions) {
@@ -37,7 +37,7 @@ func WithBearer(b string) ClientOption {
 	}
 }
 
-// WithTLSInsecure is a function option for xhttp.NewClient. It sets
+// WithTLSInsecure is a functional option for xhttp.NewClient setting
 // whether the TLS certificates of the connecting server needs to be
 // verified.
 // This should be used with great care, and not in production
@@ -45,5 +45,13 @@ func WithBearer(b string) ClientOption {
 func WithTLSInsecure() ClientOption {
 	return func(options *clientOptions) {
 		options.TLSInsecureSkipVerify = true
+	}
+}
+
+// WithContentType is a functional option for xhttp.NewClient setting
+// the Content Type of the HTTP client.
+func WithContentType(c string) ClientOption {
+	return func(options *clientOptions) {
+		options.ContentType = c
 	}
 }

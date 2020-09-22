@@ -14,6 +14,17 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
+	t.Run("default content type", func(t *testing.T) {
+		xt.Eq(t, ContentTypeJSON, defaultContentType, "expected correct default content type")
+		c := NewClient("http://example.com")
+		xt.Eq(t, ContentTypeJSON, c.ContentType())
+	})
+
+	t.Run("set different content-type", func(t *testing.T) {
+		c := NewClient("http://example.com", WithContentType(ContentTypePlain))
+		xt.Eq(t, ContentTypePlain, c.ContentType())
+	})
+
 	t.Run("method GET", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(handlerGetHello))
 		defer func() {

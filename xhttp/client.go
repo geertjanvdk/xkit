@@ -8,10 +8,6 @@ import (
 	"net/http"
 )
 
-const (
-	defaultContentType = "application/json"
-)
-
 // Client is a wrapper around Go's http.Client storing the URI and options.
 type Client struct {
 	*http.Client
@@ -74,4 +70,10 @@ func (c *Client) SetAuthzBearer(s string) {
 // AuthzBearer returns the authorization bearer of c.
 func (c Client) AuthzBearer() string {
 	return c.Client.Transport.(*transport).bearer
+}
+
+// ContentType returns the content type which will be used by the client
+// to communicate with the server
+func (c Client) ContentType() string {
+	return c.options.ContentType
 }

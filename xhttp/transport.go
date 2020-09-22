@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+const (
+	defaultContentType = ContentTypeJSON
+)
+
 type transport struct {
 	trp                   http.Transport
 	bearer                string

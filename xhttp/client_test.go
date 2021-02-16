@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func TestNewClient(t *testing.T) {

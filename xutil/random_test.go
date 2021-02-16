@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func TestRandomBytes(t *testing.T) {

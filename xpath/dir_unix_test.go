@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func TestFilesInDir(t *testing.T) {

@@ -13,8 +13,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/eventeneer/xkit/xhttp"
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xhttp"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 // MustMD5SumIt returns the hexadecimal string representation of the MD5sum of s.

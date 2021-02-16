@@ -7,7 +7,7 @@ Copyright (c) 2020 Geert JM Vanderkelen
 
 ## Installation
 
-```go get github.com/eventeneer/xkit```
+```go get github.com/geertjanvdk/xkit```
 
 ## Usage
 

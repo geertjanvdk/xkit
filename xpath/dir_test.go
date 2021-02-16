@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func TestIsDir(t *testing.T) {

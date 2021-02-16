@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/eventeneer/xkit/xhttp"
-	"github.com/eventeneer/xkit/xnet"
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xhttp"
+	"github.com/geertjanvdk/xkit/xnet"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func runTLSServer(addr net.TCPAddr) {

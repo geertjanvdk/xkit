@@ -5,7 +5,7 @@ package xpath
 import (
 	"testing"
 
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func TestIsRegularFile(t *testing.T) {

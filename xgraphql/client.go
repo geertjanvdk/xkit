@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/eventeneer/xkit/xhttp"
+	"github.com/geertjanvdk/xkit/xhttp"
 )
 
 // Variables defines a key/value mapping which can be used to pass

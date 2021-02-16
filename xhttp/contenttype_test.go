@@ -5,7 +5,7 @@ package xhttp
 import (
 	"testing"
 
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func TestContentTypes(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/eventeneer/xkit/xt"
+	"github.com/geertjanvdk/xkit/xt"
 )
 
 func TestIsEmailAddress(t *testing.T) {

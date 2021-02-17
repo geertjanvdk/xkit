@@ -14,7 +14,7 @@ func OK(t *testing.T, err error, messages ...string) {
 		if len(messages) > 0 {
 			messages = append([]string{"--"}, messages...)
 		}
-		fatal(t, fmt.Sprintf("\033[31;1mexpected no error, got:\n%s", err.Error()),
+		fatal(t, fmt.Sprintf("\u001B[31;1mexpected no error, got:\u001B[0m\n%s", err.Error()),
 			messages...)
 	}
 }
@@ -26,6 +26,6 @@ func KO(t *testing.T, err error, messages ...string) {
 		if len(messages) > 0 {
 			messages = append([]string{"--"}, messages...)
 		}
-		fatal(t, fmt.Sprintf("\033[31;1mexpected error\033[39m"), messages...)
+		fatal(t, fmt.Sprintf("\u001B[31;1mexpected error\u001B[0m"), messages...)
 	}
 }

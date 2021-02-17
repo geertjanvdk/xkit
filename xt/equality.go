@@ -10,7 +10,7 @@ import (
 
 func Eq(t *testing.T, expect, have interface{}, messages ...string) {
 	TestHelper(t)
-	diff := fmt.Sprintf("\n\033[31;1mexpect:\033[39m %v\n\033[31;1mhave:\033[39m %v", expect, have)
+	diff := fmt.Sprintf("\n\u001b[31;1mexpect:\u001b[0m%v\n\u001b[31;1mhave:\u001b[0m %v", expect, have)
 
 	// we can not compare nil values
 	if isNil(expect) || isNil(have) {
@@ -24,7 +24,8 @@ func Eq(t *testing.T, expect, have interface{}, messages ...string) {
 	haveType := reflect.TypeOf(have)
 
 	if !expVal.Type().ConvertibleTo(haveType) {
-		messages = append(messages, fmt.Sprintf("\033[31;1mcannot compare %v with %v\033[39m", expVal.Type(), haveType))
+		messages = append(messages, fmt.Sprintf("\u001b[31;1mcannot compare %v with %v\u001b[0m",
+			expVal.Type(), haveType))
 		fatal(t, diff, messages...)
 	}
 

@@ -33,7 +33,7 @@ func (sgr *SGR) String() string {
 const esc = "\u001b["
 
 var (
-	Reset     = SGR{attribute: 0}
+	AllReset  = SGR{attribute: 0}
 	Bold      = SGR{attribute: 1}
 	Underline = SGR{attribute: 4}
 	FgColor   = SGR{attribute: 38}
@@ -143,4 +143,9 @@ func BgColor24(r, g, b int) SGR {
 		variant:   2,
 		arguments: []uint8{uint8(r), uint8(g), uint8(b)},
 	}
+}
+
+// Reset resets any SGR.
+func Reset() string {
+	return esc + AllReset.String() + "m"
 }

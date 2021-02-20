@@ -10,7 +10,7 @@ import (
 
 func Eq(t *testing.T, expect, have interface{}, messages ...string) {
 	TestHelper(t)
-	diff := fmt.Sprintf("\n\u001b[31;1mexpect:\u001b[0m%v\n\u001b[31;1mhave:\u001b[0m %v", expect, have)
+	diff := fmt.Sprintf("\n\u001b[31;1mexpect:\t\u001b[0m%v\n\u001b[31;1mhave:\t\u001b[0m%v", expect, have)
 
 	// we can not compare nil values
 	if isNil(expect) || isNil(have) {

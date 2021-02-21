@@ -81,7 +81,8 @@ func (db *DB) HaveTable(table string) (bool, error) {
 
 // HaveConstraint checks whether constraint is available for table.
 func (db *DB) HaveIndex(table string, index string) (bool, error) {
-	q := `SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = database() AND INDEX_NAME = ?`
+	q := `SELECT COUNT(*) as cnt FROM INFORMATION_SCHEMA.STATISTICS
+WHERE TABLE_SCHEMA = database() AND TABLE_NAME = ? AND INDEX_NAME = ?`
 
 	var cnt int
 

@@ -18,6 +18,11 @@ type OrderedMap struct {
 	order []string
 }
 
+// Count returns the number of elements in the map.
+func (om *OrderedMap) Count() int {
+	return len(om.order)
+}
+
 // Set key in OrderedMap to value. Previously stored values
 // are overwritten, but the order does not change.
 func (om *OrderedMap) Set(key string, value interface{}) {

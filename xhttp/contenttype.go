@@ -4,8 +4,8 @@ package xhttp
 
 // Common Content Types used when doing HTTP requests.
 const (
-	ContentTypePlain  = "text/plain; charset=UTF-8"
-	ContentTypeHTML   = "text/html; charset=UTF-8"
-	ContentTypeJSON   = "application/json"
+	ContentTypePlain  = "text/plain; charset=utf-8"
+	ContentTypeHTML   = "text/html; charset=utf-8"
+	ContentTypeJSON   = "application/json; charset=utf-8"
 	ContentTypeBinary = "application/octet-stream"
 )

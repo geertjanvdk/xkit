@@ -70,3 +70,20 @@ func (om *OrderedMap) KeysValues() ([]string, []interface{}) {
 
 	return om.order, om.values()
 }
+
+// Has returns whether the map contains key.
+func (om *OrderedMap) Has(key string) bool {
+	om.mapMU.RLock()
+	defer om.mapMU.RUnlock()
+
+	return HasString(om.order, key)
+}
+
+// Value returns the value for key and also whether it was found.
+// The bool is returned because value could be nil.
+func (om *OrderedMap) Value(key string) (interface{}, bool) {
+	om.mapMU.RLock()
+	defer om.mapMU.RUnlock()
+
+	return om.map_[key], HasString(om.order, key)
+}

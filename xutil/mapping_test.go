@@ -17,6 +17,7 @@ func TestOrderedMap(t *testing.T) {
 		keys, values := om.KeysValues()
 		xt.Eq(t, 0, len(keys))
 		xt.Eq(t, 0, len(values))
+		xt.Eq(t, false, om.Has("somekey"))
 	})
 
 	t.Run("retrieve keys and values", func(t *testing.T) {
@@ -24,6 +25,7 @@ func TestOrderedMap(t *testing.T) {
 		om.Set("key3", "value3")
 		om.Set("key1", 1.1)
 		om.Set("key2", 2)
+		xt.Eq(t, true, om.Has("key2"))
 
 		expKeys := []string{"key3", "key1", "key2"}
 		expValues := []interface{}{"value3", 1.1, 2}
@@ -50,5 +52,32 @@ func TestOrderedMap(t *testing.T) {
 		xt.Eq(t, expKeys, keys)
 		xt.Eq(t, expValues, values)
 		xt.Eq(t, len(expKeys), om.Count())
+	})
+
+	t.Run("retrieve key", func(t *testing.T) {
+		om := OrderedMap{}
+		om.Set("key3", "value3")
+		om.Set("key1", 1.1)
+		om.Set("key2", 2)
+		om.Set("key4", nil)
+
+		cases := map[string]struct {
+			key     string
+			exp     interface{}
+			expHave bool
+		}{
+			"nil":      {key: "key4", exp: nil, expHave: true},
+			"notkey":   {key: "notkey", exp: nil, expHave: false},
+			"key3":     {key: "key3", exp: "value3", expHave: true},
+			"nilnokey": {key: "nilnokey", exp: nil, expHave: false},
+		}
+
+		for name, cs := range cases {
+			t.Run(name, func(t *testing.T) {
+				v, have := om.Value(cs.key)
+				xt.Eq(t, cs.expHave, have)
+				xt.Eq(t, cs.exp, v)
+			})
+		}
 	})
 }

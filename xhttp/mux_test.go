@@ -15,10 +15,11 @@ import (
 type pathEchoHandler struct{}
 
 type responseData struct {
-	Pattern string `json:"pattern,omitempty"`
-	Path    string `json:"path,omitempty"`
-	Error   string `json:"error,omitempty"`
-	Code    string `json:"code,omitempty"`
+	Pattern  string    `json:"pattern,omitempty"`
+	Path     string    `json:"path,omitempty"`
+	Error    string    `json:"error,omitempty"`
+	Code     string    `json:"code,omitempty"`
+	Captures *Captures `json:"captures,omitempty"`
 }
 
 func (pathEchoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +32,34 @@ func (pathEchoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var data = responseData{
 		Pattern: pattern,
 		Path:    requestPathCleanUp(r.URL.Path),
+	}
+	body, err := json.Marshal(data)
+	if err != nil {
+		InternalError(w, r)
+		return
+	}
+	_, _ = w.Write(body)
+}
+
+type captureHandler struct{}
+
+func (captureHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	pattern, ok := ctx.Value(RegexpMatchContextKey).(string)
+	if !ok {
+		pattern = ""
+	}
+
+	captures, ok := ctx.Value(CapturesContextKey).(*Captures)
+	if !ok {
+		InternalError(w, r)
+		return
+	}
+
+	var data = responseData{
+		Pattern:  pattern,
+		Path:     requestPathCleanUp(r.URL.Path),
+		Captures: captures,
 	}
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -197,5 +226,75 @@ func TestServeReMux_Handle(t *testing.T) {
 		mux.ServeHTTP(rr, req)
 
 		xt.Eq(t, http.StatusMethodNotAllowed, rr.Code)
+	})
+
+	t.Run("pattern with captures", func(t *testing.T) {
+		expRegex := []string{
+			`^/blog/(?P<blogID>\d{1,19})`,
+			`^/blog/(?P<blogUID>[\w-_]+)/images/(?P<imageID>\d{1,19})/thumbnail`,
+			`^/blog/(?P<blogUID>[\w-_]+)/images`,
+			`^/blog/(?P<blogUID>[\w-_]+)`,
+		}
+		mux := ServeReMux{}
+		mux.Handle(`^/blog/<int:blogID>`, captureHandler{})
+		mux.Handle(`^/blog/<blogUID>/images/<int:imageID>/thumbnail`, captureHandler{})
+		mux.Handle(`^/blog/<blogUID>/images`, captureHandler{})
+		mux.Handle(`^/blog/<str:blogUID>`, captureHandler{})
+
+		for i, h := range mux.handlers.Values() {
+			xt.Eq(t, expRegex[i], h.(*reHandler).regex)
+		}
+
+		cases := map[string]struct {
+			path string
+			exp  *Captures
+		}{
+			"blog 1234 explicit converter": {path: "/blog/1234", exp: &Captures{
+				"blogID": Capture{Name: "blogID", Value: "1234", Converter: "int"},
+			}},
+
+			"blog Y4sSn8f explicit converter": {path: "/blog/Y4sSn8f", exp: &Captures{
+				"blogUID": Capture{Name: "blogUID", Value: "Y4sSn8f", Converter: "str"},
+			}},
+
+			"blog Aw5BDfx without converter": {path: "/blog/Aw5BDfx", exp: &Captures{
+				"blogUID": Capture{Name: "blogUID", Value: "Aw5BDfx", Converter: "str"},
+			}},
+
+			"multiple captures": {path: "/blog/GjqzmwZ/images/2334/thumbnail", exp: &Captures{
+				"blogUID": Capture{Name: "blogUID", Value: "GjqzmwZ", Converter: "str"},
+				"imageID": Capture{Name: "imageID", Value: "2334", Converter: "int"},
+			}},
+		}
+
+		for name, cs := range cases {
+			t.Run(name, func(t *testing.T) {
+				req, err := http.NewRequest(http.MethodGet, cs.path, nil)
+				xt.OK(t, err)
+				req.Header.Set("Content-Type", ContentTypeJSON)
+
+				rr := httptest.NewRecorder()
+				mux.ServeHTTP(rr, req)
+
+				xt.Eq(t, http.StatusOK, rr.Code)
+
+				var data responseData
+				err = json.Unmarshal(rr.Body.Bytes(), &data)
+				xt.OK(t, err)
+				xt.Eq(t, cs.exp, data.Captures)
+			})
+		}
+	})
+
+	t.Run("named capture cannot occur twice", func(t *testing.T) {
+		xt.Panics(t, func() {
+			(&reHandler{}).setPattern("/<name1>/foo/<name2>/<name1>")
+		})
+	})
+
+	t.Run("angle brackets not used correctly when capturing", func(t *testing.T) {
+		xt.Panics(t, func() {
+			(&reHandler{}).setPattern("/<name1>/foo/<name2")
+		})
 	})
 }

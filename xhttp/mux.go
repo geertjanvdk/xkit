@@ -91,15 +91,15 @@ func (r *reHandler) setPattern(pattern string) {
 
 	matches := reCaptures.FindAllStringSubmatch(pattern, -1)
 	newPattern := pattern
+	pos := 0
 
 	if matches != nil {
 		r.captures = Captures{}
-		pos := 0
 
 		for _, m := range matches {
 			name := m[3]
 			if _, have := r.captures[name]; have {
-				panic("(xhttp) pattern capture value `" + name + "` specified twice")
+				panic("xhttp: pattern capture value `" + name + "` specified twice")
 			}
 
 			_ = captureRegs
@@ -109,10 +109,23 @@ func (r *reHandler) setPattern(pattern string) {
 			}
 			capReg, have := captureRegs[capConverter]
 			if !have {
-				panic("(xhttp) invalid pattern capture Converter type; was " + capConverter)
+				panic("xhttp: invalid pattern capture Converter type; was " + capConverter)
 			}
-			aOpen := strings.IndexByte(newPattern[pos:], '<') + pos
-			aClose := strings.IndexByte(newPattern[pos:], '>') + pos
+
+			// since we have a match, there must be angle brackets
+			nextOpen := strings.IndexByte(newPattern[pos:], '<')
+			if nextOpen == -1 {
+				panic("xhttp: invalid pattern capture missing opening angle brackets; was " +
+					pattern + " resulted in " + newPattern)
+			}
+			aOpen := nextOpen + pos
+			nextClose := strings.IndexByte(newPattern[pos:], '>')
+			if nextClose == -1 {
+				panic("xhttp: invalid pattern capture missing closing angle brackets; was " +
+					pattern + " resulted in " + newPattern)
+			}
+
+			aClose := nextClose + pos
 
 			subReg := fmt.Sprintf(capReg, name)
 			newPattern = newPattern[0:aOpen] + subReg + newPattern[aClose+1:]
@@ -126,13 +139,16 @@ func (r *reHandler) setPattern(pattern string) {
 		}
 	}
 
-	if strings.ContainsAny(newPattern, "<>") {
-		panic("(xhttp) invalid pattern capture with mismatch angle brackets; was " + pattern)
+	// < and > are unsafe, so at this point, if the rest of the pattern contains them,
+	// it is a programming error
+	if pos < len(newPattern) && strings.ContainsAny(newPattern[pos:], "<>") {
+		panic("xhttp: invalid pattern capture missing opening angle brackets; was " +
+			pattern + " resulted in " + newPattern)
 	}
 
 	reg, err := regexp.Compile(newPattern)
 	if err != nil {
-		panic("(xhttp) invalid pattern; was " + pattern)
+		panic("xhttp: invalid pattern; was " + pattern)
 	}
 
 	r.pattern = pattern
@@ -188,7 +204,7 @@ func NewServeReMux() *ServeReMux {
 // compile the expression.
 func (s *ServeReMux) Handle(pattern string, handler http.Handler, methods ...Method) {
 	if s.handlers.Has(pattern) {
-		panic("(xhttp) pattern `" + pattern + "` already registered")
+		panic("xhttp: pattern `" + pattern + "` already registered")
 	}
 
 	h := &reHandler{}
@@ -225,7 +241,7 @@ func (s *ServeReMux) Handler(r *http.Request) (http.Handler, string, *Captures) 
 	for _, v := range s.handlers.Values() {
 		h, ok := v.(*reHandler)
 		if !ok {
-			panic(fmt.Sprintf("(xhttp) ServeReMux has unsupported handler registered; was %v", p))
+			panic(fmt.Sprintf("xhttp: ServeReMux has unsupported handler registered; was %v", p))
 		}
 
 		if h.compiled.MatchString(p) {

@@ -33,14 +33,14 @@ func (l *Logger) NewEntry() *Entry {
 }
 
 // Level returns log level of l.
-func (l Logger) Level() Level {
+func (l *Logger) Level() Level {
 	return l.level
 }
 
-// Level returns log level of l.
+// SetLevel sets the log level of l.
 func (l *Logger) SetLevel(level Level) Level {
 	if _, ok := levelName[level]; !ok {
-		panic(fmt.Sprintf("in"))
+		panic(fmt.Sprintf("xlog: invalid log level; was %d", level))
 	}
 	l.level = level
 	return l.level
@@ -52,7 +52,7 @@ func (l *Logger) SetFormatter(f Formatter) {
 }
 
 // isLogged returns true if level has to be logged.
-func (l Logger) isLogged(level Level) bool {
+func (l *Logger) isLogged(level Level) bool {
 	return l.level >= level
 }
 

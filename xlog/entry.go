@@ -188,6 +188,14 @@ func (e *Entry) Infof(format string, a ...interface{}) {
 	e.Logf(InfoLevel, format, a...)
 }
 
+func (e *Entry) Debug(a ...interface{}) {
+	e.Log(DebugLevel, a...)
+}
+
+func (e *Entry) Debugf(format string, a ...interface{}) {
+	e.Logf(DebugLevel, format, a...)
+}
+
 func (e *Entry) UnmarshalJSON(data []byte) error {
 	var res struct {
 		Fields Fields

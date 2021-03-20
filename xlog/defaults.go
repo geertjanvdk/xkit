@@ -4,6 +4,3 @@ package xlog
 
 // defaultLogLevel defines the default log level.
 var defaultLogLevel = InfoLevel
-
-// defaultTextFormat
-var defaultTextTemplate = "[{{ .Timestamp }}] {{ .Scope }} {{ .Level }} {{ .Message }}"

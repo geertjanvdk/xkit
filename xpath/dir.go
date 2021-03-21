@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Geert JM Vanderkelen
+// Copyright (c) 2020, 2021, Geert JM Vanderkelen
 
 package xpath
 

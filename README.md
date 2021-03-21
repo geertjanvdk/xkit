@@ -7,7 +7,7 @@ xkit is for personal projects the creator is working on. They can be
 handy for others, hence open sourced. Bugs can be reported, and even feature requested,
 even appreciated, but don't expect a swift response.
 
-Copyright (c) 2020 Geert JM Vanderkelen
+Copyright (c) 2020, 2021, Geert JM Vanderkelen
 
 ## Installation
 
@@ -38,12 +38,12 @@ There are quite a few packages and frameworks like Gorilla, Gin, Martini, etc.. 
 end, if you sit down, you can write down what you need in a few hours and never think
 of the dependency again.
 
-The `xhttp` wrappers around the Go's `http` package offering a `xhttp.Client` which makes
+The `xhttp` wrapper around the Go's `http` package offering a `xhttp.Client` which makes
 it a bit easier to communicate with web APIs for example.
 
 It also offers `xhttp.ServeReMux` which is a multiplexer (mux) that uses regular expressions
-and can restrict HTTP methods. It also can capture values using Django's style. All that
-in 300 lines of simple code (we don't care about performance too much).
+and can restrict HTTP methods. It can also capture values using Django's style. All that
+in 300 lines of simple code (we don't focus too much on performance).
 
 Example:
 
@@ -63,9 +63,9 @@ fmt.Println("Person ID:", captures["id"].AsInt64())
 
 ### xlog - logging
 
-Heavily inspired by [logrus][1], this package provides the minimum depending only on the
-functionality coming with Go itself. Some formatters might be added, but the text
-and JSON formatters are in most cases enough.
+Heavily inspired by [logrus][1], this package provides the minimum for making logging
+a bit more enjoyable in Go. Some formatters might be added later on, but the text (with
+colors) and JSON formatters are in most cases enough.
 
 ### xt - unit testing
 

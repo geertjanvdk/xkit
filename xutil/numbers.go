@@ -6,3 +6,8 @@ package xutil
 func IntInRange(n, lower, upper int) bool {
 	return n >= lower && n <= upper
 }
+
+// Int64Ptr returns i as pointer.
+func Int64Ptr(i int64) *int64 {
+	return &i
+}

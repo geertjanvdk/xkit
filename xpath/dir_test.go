@@ -4,6 +4,7 @@ package xpath
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"github.com/geertjanvdk/xkit/xt"
@@ -44,6 +45,23 @@ func TestRegularFilesInDir(t *testing.T) {
 		xt.OK(t, err)
 
 		exp := []string{"assert.go", "equality.go", "errors.go", "panic.go", "regex.go", "utils.go"}
+		xt.Eq(t, exp, files)
+	})
+}
+
+func TestRegularFilesInDirWithFullPath(t *testing.T) {
+	t.Run("list xpath files", func(t *testing.T) {
+		dir := "testdata/regular_files_in_dir"
+		readdir, err := ioutil.ReadDir(dir)
+		xt.OK(t, err)
+		var exp []string
+		for _, f := range readdir {
+			exp = append(exp, filepath.Join(dir, f.Name()))
+		}
+
+		files, err := RegularFilesInDirWithFullPath(dir)
+		xt.OK(t, err)
+
 		xt.Eq(t, exp, files)
 	})
 }

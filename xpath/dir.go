@@ -5,6 +5,7 @@ package xpath
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 )
 
@@ -33,6 +34,21 @@ func RegularFilesInDir(path string) ([]string, error) {
 
 	sort.Strings(l)
 	return l, nil
+}
+
+// RegularFilesInDirWithFullPath returns regular files found in directory path with
+// each path included in the filename.
+func RegularFilesInDirWithFullPath(path string) ([]string, error) {
+	files, err := RegularFilesInDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	absFiles := make([]string, len(files))
+	for i, f := range files {
+		absFiles[i] = filepath.Join(path, f)
+	}
+	return absFiles, nil
 }
 
 // FilesInDir returns file which are not directories found in directory path.

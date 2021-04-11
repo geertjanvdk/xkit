@@ -3,6 +3,7 @@
 package xutil
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 	"time"
@@ -44,4 +45,39 @@ func TestUDate(t *testing.T) {
 		xt.Eq(t, time.UTC, ts.Location())
 		xt.Eq(t, exp, ts.String())
 	})
+}
+
+func TestFractionalTime_MarshalJSON(t *testing.T) {
+	berlin, err := time.LoadLocation("Europe/Berlin")
+	xt.OK(t, err)
+
+	cases := []struct {
+		value FractionalTime
+		exp   string
+	}{
+		{
+			value: FractionalTime{time.Date(2019, 4, 2, 4, 23, 44, 0, time.UTC)},
+			exp:   `"2019-04-02T04:23:44.0Z"`,
+		},
+		{
+			value: FractionalTime{time.Date(2019, 4, 2, 4, 23, 44, 199292235, time.UTC)},
+			exp:   `"2019-04-02T04:23:44.199292Z"`,
+		},
+		{
+			value: FractionalTime{time.Date(2019, 4, 2, 4, 23, 44, 299297685, berlin)},
+			exp:   `"2019-04-02T04:23:44.299297+02:00"`,
+		},
+		{
+			value: FractionalTime{time.Date(2019, 4, 2, 4, 23, 44, 0, berlin)},
+			exp:   `"2019-04-02T04:23:44.0+02:00"`,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.exp, func(t *testing.T) {
+			res, err := json.Marshal(c.value)
+			xt.OK(t, err)
+			xt.Eq(t, c.exp, string(res))
+		})
+	}
 }

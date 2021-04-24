@@ -25,21 +25,43 @@ func StringPtr(s string) *string {
 
 // HasString returns true whether x is in slice a.
 func HasString(a []string, x string) bool {
-	l := len(a)
-	if l == 0 {
-		return false
-	}
+	return IndexString(a, x) > -1
+}
 
-	if l == 1 {
-		return a[0] == x
-	}
-
-	// this is O(n) but OK for now
-	for _, e := range a {
+// IndexString returns the position of x in slice a or -1
+// when x is not part of a.
+// Note that this is different than Go's `sort.SearchString` which
+// requires the slice to be sorted.
+func IndexString(a []string, x string) int {
+	for i, e := range a {
 		if e == x {
-			return true
+			return i
 		}
 	}
 
-	return false
+	return -1
+}
+
+// RemoveStrings removes first occurrence of x from a and returns
+// the result leaving a unmodified.
+func RemoveString(a []string, x string) []string {
+	index := IndexString(a, x)
+	if index == -1 {
+		return a
+	}
+
+	var n []string
+	n = append(n, a[:index]...)
+	return append(n, a[index+1:]...)
+}
+
+// RemoveStrings removes first occurrence of any x from a and returns
+// the result leaving a unmodified.
+func RemoveStrings(a []string, x ...string) []string {
+	result := append([]string{}, a...)
+	for _, needle := range x {
+		result = RemoveString(result, needle)
+	}
+
+	return result
 }

@@ -5,6 +5,7 @@ package xutil
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/geertjanvdk/xkit/xt"
@@ -64,4 +65,54 @@ func TestHasString(t *testing.T) {
 			xt.Eq(t, c.exp, HasString(c.have, x))
 		})
 	}
+}
+
+func TestRemoveStrings(t *testing.T) {
+	t.Run("unordered slice", func(t *testing.T) {
+		a := []string{"orange", "apple", "pear", "grape", "banana"}
+		exp := []string{"orange", "apple", "pear", "banana"}
+
+		xt.Eq(t, exp, RemoveStrings(a, "grape"))
+
+		// a is not modified
+		xt.Eq(t, []string{"orange", "apple", "pear", "grape", "banana"}, a)
+	})
+
+	t.Run("ordered slice", func(t *testing.T) {
+		a := []string{"orange", "apple", "pear", "grape", "banana"}
+		sort.Strings(a)
+		exp := []string{"orange", "apple", "pear", "banana"}
+		sort.Strings(exp)
+
+		xt.Eq(t, exp, RemoveStrings(a, "grape"))
+	})
+
+	t.Run("remove multiple", func(t *testing.T) {
+		a := []string{"orange", "apple", "pear", "grape", "banana"}
+		exp := []string{"apple", "pear", "banana"}
+
+		xt.Eq(t, exp, RemoveStrings(a, "grape", "orange"))
+	})
+
+	t.Run("ordered slice and remove multiple start", func(t *testing.T) {
+		a := []string{"orange", "apple", "pear", "grape", "banana"}
+		sort.Strings(a)
+		exp := []string{"apple", "pear", "grape"}
+		sort.Strings(exp)
+
+		xt.Eq(t, exp, RemoveStrings(a, "banana", "orange"))
+	})
+
+	t.Run("nothing removed", func(t *testing.T) {
+		a := []string{"orange", "apple", "pear", "grape", "banana"}
+
+		xt.Eq(t, a, RemoveStrings(a, "papaya"))
+	})
+
+	t.Run("one string not found", func(t *testing.T) {
+		a := []string{"orange", "apple", "pear", "grape", "banana"}
+		exp := []string{"orange", "apple", "pear", "grape"}
+
+		xt.Eq(t, exp, RemoveStrings(a, "papaya", "banana"))
+	})
 }

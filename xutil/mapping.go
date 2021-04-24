@@ -2,7 +2,9 @@
 
 package xutil
 
-import "sync"
+import (
+	"sync"
+)
 
 // OrderedMap wraps around a Go map keeping the order with which
 // elements have been added. Keys must be strings, but values
@@ -37,6 +39,16 @@ func (om *OrderedMap) Set(key string, value interface{}) {
 	if !HasString(om.order, key) {
 		om.order = append(om.order, key)
 	}
+}
+
+// Delete deletes the element with the specified key from
+// the map.
+func (om *OrderedMap) Delete(key string) {
+	om.mapMU.Lock()
+	defer om.mapMU.Unlock()
+
+	om.order = RemoveString(om.order, key)
+	delete(om.map_, key)
 }
 
 // Keys returns keys as slice of string.

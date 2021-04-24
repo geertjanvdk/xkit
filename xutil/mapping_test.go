@@ -80,4 +80,32 @@ func TestOrderedMap(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("delete element", func(t *testing.T) {
+		om := OrderedMap{}
+		om.Set("key3", "value3")
+		om.Set("key1", 1.1)
+		om.Set("key2", 2)
+		om.Set("key4", nil)
+
+		xt.Eq(t, 4, om.Count())
+		om.Delete("noSuchKey")
+
+		xt.Eq(t, 4, om.Count())
+
+		om.Delete("key2")
+		xt.Eq(t, 3, om.Count())
+		_, have := om.Value("key2")
+		xt.Eq(t, false, have)
+
+		om.Delete("key3")
+		xt.Eq(t, 2, om.Count())
+		_, have = om.Value("key3")
+		xt.Eq(t, false, have)
+
+		om.Delete("key3")
+		xt.Eq(t, 2, om.Count())
+		_, have = om.Value("key3")
+		xt.Eq(t, false, have)
+	})
 }

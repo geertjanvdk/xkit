@@ -215,6 +215,15 @@ func (s *ServeReMux) Handle(pattern string, handler http.Handler, methods ...Met
 	s.handlers.Set(pattern, h)
 }
 
+// HandleFunc registers the handler function for the given pattern, which is a regular
+// expression with optional captures in angle brackets.
+func (s *ServeReMux) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request), method ...Method) {
+	if handler == nil {
+		panic("xhttp: nil handler")
+	}
+	s.Handle(pattern, http.HandlerFunc(handler), method...)
+}
+
 // ServeHTTP dispatches the request to the handler whose
 // regular expression matches the path of the request URL.
 func (s *ServeReMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -233,20 +242,27 @@ func (s *ServeReMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.ServeHTTP(w, r)
 }
 
-// Handler returns the handler to use for the given request.
-// Panics when registered handler is not supported.
-func (s *ServeReMux) Handler(r *http.Request) (http.Handler, string, *Captures) {
+func (s *ServeReMux) findMatch(r *http.Request) (http.Handler, string, Captures, bool) {
 	p := requestPathCleanUp(r.URL.Path)
 	var foundMatchButNotAllowed bool
+
 	for _, v := range s.handlers.Values() {
 		h, ok := v.(*reHandler)
 		if !ok {
 			panic(fmt.Sprintf("xhttp: ServeReMux has unsupported handler registered; was %v", p))
 		}
 
+		subMux, ok := h.handler.(*ServeReMux)
+		if ok {
+			h, p, c, f := subMux.findMatch(r)
+			if h != nil {
+				return h, p, c, f
+			}
+		}
+
 		if h.compiled.MatchString(p) {
 			if h.allowedMethod(Method(r.Method)) {
-				var captures *Captures
+				var captures Captures
 				if h.captures != nil {
 					caps := Captures{}
 					matches := h.compiled.FindStringSubmatch(p)
@@ -259,19 +275,30 @@ func (s *ServeReMux) Handler(r *http.Request) (http.Handler, string, *Captures) 
 							}
 						}
 					}
-					captures = &caps
+					captures = caps
 				}
-				return h.handler, h.pattern, captures
+				return h.handler, h.pattern, captures, false
 			}
 			foundMatchButNotAllowed = true
 		}
 	}
 
-	if foundMatchButNotAllowed {
-		return MethodNotAllowedHandler(), "", nil
+	return nil, "", nil, foundMatchButNotAllowed
+}
+
+// Handler returns the handler to use for the given request.
+// Panics when registered handler is not supported.
+func (s *ServeReMux) Handler(r *http.Request) (http.Handler, string, Captures) {
+	handler, pattern, captures, foundMatchButNotAllowed := s.findMatch(r)
+	if handler == nil {
+		if foundMatchButNotAllowed {
+			return MethodNotAllowedHandler(), "", nil
+		}
+
+		return NotFoundHandler(), "", nil
 	}
 
-	return NotFoundHandler(), "", nil
+	return handler, pattern, captures
 }
 
 // requestPathCleanUp uses Go's path.Clean to clean up p.

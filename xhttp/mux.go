@@ -170,15 +170,15 @@ func (r reHandler) allowedMethod(method Method) bool {
 	return false
 }
 
-// ServeMux is an HTTP request multiplexer which matches the path
+// ServeReMux is an HTTP request multiplexer which matches the path
 // of the URL of each incoming request against a list of
 // registered patterns provide as regular expressions.
 //
-// Every registered pattern can also optionally associated with allowed
+// Every registered pattern can also optionally be associated with allowed
 // HTTP methods. When no allowed method is provided, it will only allow GET.
 //
 // A pattern can also capture values using `<>` angle brackets.
-// For example, `/blog/<blogUID>` will capture the value where `<blogUID>`
+// For example, `/blog/<blogUID>` will capture the value `<blogUID>`
 // and it will be made available in the request's context under the key
 // `xhttp.CapturesContextKey` as an instance of `xhttp.Capture`.
 // It is also possible to add a type, for example `<int:blogID>`, so
@@ -186,8 +186,19 @@ func (r reHandler) allowedMethod(method Method) bool {
 // to get the converted value.
 // It is not possible to use the same named capture twice.
 //
+// For example: the following pattern allows a HTTP endpoint where we request
+// a person by its identifier:
+//
+//     mux.Handle("^/person/<int:id>", PersonHandler(), xhttp.MethodGet)
+//
+// In the handler, in its context, this value can then be retrieved like
+// this:
+//
+//     captures, ok := ctx.Value(xhttp.CapturesContextKey).(*xhttp.Captures)
+//     fmt.Println("Person ID:", captures["id"].AsInt64())
+//
 // When no regular expression matched, 404 is returned. If a pattern
-// matched, but it turns out the method was not allowed, the HTTP status
+// matches, but it turns out the method was not allowed, the HTTP status
 // 405 (method not allowed) is returned.
 type ServeReMux struct {
 	handlers xutil.OrderedMap

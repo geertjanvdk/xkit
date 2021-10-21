@@ -170,7 +170,7 @@ func (r reHandler) allowedMethod(method Method) bool {
 	return false
 }
 
-// ServeMux is an HTTP request multiplexer which matches the path
+// ServeReMux is an HTTP request multiplexer which matches the path
 // of the URL of each incoming request against a list of
 // registered patterns provide as regular expressions.
 //

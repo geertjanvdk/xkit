@@ -23,5 +23,9 @@ func (s Render) Join() string {
 }
 
 func (s Render) Sprintf(format string, a ...interface{}) string {
-	return s.Join() + fmt.Sprintf(format, a...)
+	return s.Join() + fmt.Sprintf(format, a...) + Reset()
+}
+
+func (s Render) Sprint(a ...interface{}) string {
+	return s.Join() + fmt.Sprint(a...) + Reset()
 }

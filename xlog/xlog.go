@@ -67,6 +67,10 @@ func WithScope(scope string) *Entry {
 	return newEntry(defaultLogger).WithScope(scope)
 }
 
+func Panic(a ...interface{}) {
+	defaultLogger.Panic(a...)
+}
+
 func Panicf(format string, a ...interface{}) {
 	defaultLogger.Panicf(format, a...)
 }

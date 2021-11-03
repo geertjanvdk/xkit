@@ -30,7 +30,15 @@ func (sgr *SGR) String() string {
 	return strings.Join(parts, ";")
 }
 
-const esc = "\u001b["
+const esc = "\u001b"
+
+var (
+	HideCursor             = esc + "[?25l"
+	ShowCursor             = esc + "[?25h"
+	ClearLineRightOfCursor = esc + "[0K"
+	ClearLineLeftOfCursor  = esc + "[1K"
+	ClearLineAtCursor      = esc + "[2K"
+)
 
 var (
 	AllReset  = SGR{attribute: 0}
@@ -147,5 +155,5 @@ func BgColor24(r, g, b int) SGR {
 
 // Reset resets any SGR.
 func Reset() string {
-	return esc + AllReset.String() + "m"
+	return esc + "[" + AllReset.String() + "m"
 }

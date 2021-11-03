@@ -9,7 +9,7 @@ import (
 
 type Render []SGR
 
-func (s Render) Join() string {
+func (s Render) join() string {
 	if len(s) == 0 {
 		return ""
 	}
@@ -19,9 +19,9 @@ func (s Render) Join() string {
 		parts[i] = sgr.String()
 	}
 
-	return esc + strings.Join(parts, ";") + "m"
+	return strings.Join(parts, ";") + "m"
 }
 
 func (s Render) Sprintf(format string, a ...interface{}) string {
-	return s.Join() + fmt.Sprintf(format, a...)
+	return esc + "[" + s.join() + fmt.Sprintf(format, a...)
 }

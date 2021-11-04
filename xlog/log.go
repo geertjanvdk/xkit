@@ -56,6 +56,12 @@ func (l *Logger) isLogged(level Level) bool {
 	return l.level >= level
 }
 
+// WithError returns an entry with value of field 'error' set to err.
+// This is the same as calling Logger.WithField(FieldError, err).
+func (l *Logger) WithError(err error) *Entry {
+	return newEntry(l).WithError(err)
+}
+
 func (l *Logger) WithField(name string, value interface{}) *Entry {
 	return newEntry(l).WithField(name, value)
 }

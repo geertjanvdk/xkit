@@ -159,7 +159,9 @@ func (e *Entry) WithScope(scope string) *Entry {
 }
 
 func (e *Entry) WithError(err error) *Entry {
-	e.Fields[FieldError] = err.Error()
+	if err != nil {
+		e.Fields[FieldError] = err.Error()
+	}
 
 	return e
 }

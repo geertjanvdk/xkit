@@ -54,3 +54,32 @@ func TestLogger_Logf(t *testing.T) {
 		xt.Assert(t, strings.Contains(res, `time=`))
 	})
 }
+
+func TestLogger_WithError(t *testing.T) {
+	t.Run("no error field when err is nil", func(t *testing.T) {
+		out := &bytes.Buffer{}
+
+		l := New()
+		l.Out = out
+
+		l.WithError(nil).Info("no error field")
+
+		exp := `^time=.*?\s{1}level=info msg="no error field"$`
+		got := strings.TrimSpace(out.String())
+		xt.Match(t, exp, got)
+	})
+
+	t.Run("with error field when err is not nil", func(t *testing.T) {
+		out := &bytes.Buffer{}
+
+		l := New()
+		l.Out = out
+
+		l.WithError(fmt.Errorf("this is an error")).Info("no error field")
+
+		exp := `^time=.*?\s{1}level=info msg="no error field" err="this is an error"$`
+		got := strings.TrimSpace(out.String())
+		fmt.Println(got)
+		xt.Match(t, exp, got)
+	})
+}

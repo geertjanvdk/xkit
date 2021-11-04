@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+// Match tests whether the string s contains any match of the regular
+// expression pattern.
 func Match(t *testing.T, pattern, s string, messages ...string) {
 	TestHelper(t)
 

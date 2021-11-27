@@ -2,7 +2,10 @@
 
 package xlog
 
-import "io"
+import (
+	"io"
+	"os"
+)
 
 type Level int
 
@@ -14,7 +17,12 @@ const (
 	DebugLevel Level = 5
 )
 
-var defaultLogger = New()
+var defaultLogger = &Logger{
+	level:     defaultLogLevel,
+	Formatter: &TextFormat{},
+	Out:       os.Stderr,
+	UseUTC:    true,
+}
 
 var levelName = map[Level]string{
 	PanicLevel: "panic",
@@ -24,14 +32,17 @@ var levelName = map[Level]string{
 	DebugLevel: "debug",
 }
 
+// SetLevel sets the level of the default logger.
 func SetLevel(level Level) {
 	defaultLogger.SetLevel(level)
 }
 
+// SetOut sets where the output of the default logger goes to.
 func SetOut(w io.Writer) {
 	defaultLogger.Out = w
 }
 
+// GetOut returns where the default logger sends its output.
 func GetOut() io.Writer {
 	return defaultLogger.Out
 }

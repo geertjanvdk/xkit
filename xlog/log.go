@@ -22,7 +22,7 @@ type Logger struct {
 func New() *Logger {
 	return &Logger{
 		level:     defaultLogLevel,
-		Formatter: &TextFormat{},
+		Formatter: defaultLogger.Formatter,
 		Out:       os.Stderr,
 		UseUTC:    true,
 	}

@@ -2,5 +2,15 @@
 
 package xlog
 
+import "os"
+
 // defaultLogLevel defines the default log level.
-var defaultLogLevel = InfoLevel
+var defaultLogLevel = ErrorLevel
+
+// defaultLogger is always available when using xlog.
+var defaultLogger = &Logger{
+	level:     defaultLogLevel,
+	Formatter: &TextFormat{},
+	Out:       os.Stderr,
+	UseUTC:    true,
+}

@@ -3,5 +3,5 @@
 package xlog
 
 type Formatter interface {
-	Format(e Entry) ([]byte, error)
+	Format(e *Entry) ([]byte, error)
 }

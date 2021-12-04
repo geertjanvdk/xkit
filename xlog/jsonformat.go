@@ -12,7 +12,7 @@ type JSONFormat struct {
 	timeFormat string // should no change for JSON
 }
 
-func (j *JSONFormat) Format(e Entry) ([]byte, error) {
+func (j *JSONFormat) Format(e *Entry) ([]byte, error) {
 	j.timeFormat = time.RFC3339Nano
 
 	r, err := json.Marshal(e)

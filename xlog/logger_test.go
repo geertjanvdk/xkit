@@ -18,9 +18,9 @@ func TestLogger_Logf(t *testing.T) {
 
 		l := New()
 		l.Out = out
-		l.level = DebugLevel
 
 		for _, level := range []Level{ErrorLevel, WarnLevel, InfoLevel, DebugLevel} {
+			l.level = level
 			ln := levelName[level]
 			t.Run("level "+ln, func(t *testing.T) {
 				expFormat := "%s log entry"
@@ -41,6 +41,7 @@ func TestLogger_Logf(t *testing.T) {
 
 		l := New()
 		l.Out = out
+		l.SetLevel(PanicLevel)
 
 		xt.Panics(t, func() {
 			l.Logf(PanicLevel, "this is a panic entry log")
@@ -66,7 +67,7 @@ func TestLogger_WithError(t *testing.T) {
 
 		exp := `^time=.*?\s{1}level=info msg="no error field"$`
 		got := strings.TrimSpace(out.String())
-		xt.Match(t, exp, got)
+		xt.Match(t, exp, got, fmt.Sprintf("got: %s", got))
 	})
 
 	t.Run("with error field when err is not nil", func(t *testing.T) {
@@ -79,7 +80,6 @@ func TestLogger_WithError(t *testing.T) {
 
 		exp := `^time=.*?\s{1}level=info msg="no error field" err="this is an error"$`
 		got := strings.TrimSpace(out.String())
-		fmt.Println(got)
-		xt.Match(t, exp, got)
+		xt.Match(t, exp, got, fmt.Sprintf("got: %s", got))
 	})
 }

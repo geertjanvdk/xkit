@@ -5,18 +5,19 @@ package xlog
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"regexp"
 	"time"
 )
 
 const (
-	FieldError   = "err"
-	FieldErrCode = "errCode"
-	FieldTime    = "time"
-	FieldLevel   = "level"
-	FieldMsg     = "msg"
-	FieldScope   = "scope"
+	FieldError    = "err"
+	FieldErrCode  = "errCode"
+	FieldTime     = "time"
+	FieldLevel    = "level"
+	FieldMsg      = "msg"
+	FieldScope    = "scope"
+	FieldFileLine = "fileInfo"
+	FieldStack    = "debugStack"
 )
 
 var reservedFields = map[string]bool{
@@ -31,7 +32,7 @@ var reMySQLError = regexp.MustCompile(`^Error (\d{4}): (.*)$`)
 
 type baseEntry struct {
 	Level   Level
-	Message string
+	message string
 	Time    time.Time
 	ErrCode string
 	Scope   string
@@ -51,7 +52,7 @@ func newEntry(logger *Logger) *Entry {
 	}
 }
 
-func (e Entry) getLogTime() time.Time {
+func (e *Entry) getLogTime() time.Time {
 	if e.logger.UseUTC {
 		return time.Now().UTC()
 	}
@@ -59,25 +60,9 @@ func (e Entry) getLogTime() time.Time {
 	return time.Now()
 }
 
-func (e *Entry) log(level Level) {
-	if e.Time.IsZero() {
-		e.Time = e.getLogTime()
-	}
-
-	e.Level = level
-	if e.Scope == "" {
-		e.Scope = e.logger.Scope // which can be empty
-	}
-	e.write()
-
-	if level == PanicLevel {
-		panic(e.Message)
-	}
-}
-
 // String returns the textual representation serialized by the logger's formatter.
-func (e Entry) String() string {
-	te := []byte(e.Message)
+func (e *Entry) String() string {
+	te := []byte(e.message)
 
 	if e.logger != nil {
 		var err error
@@ -90,52 +75,16 @@ func (e Entry) String() string {
 	return string(te)
 }
 
-func (e Entry) write() {
-	e.logger.mu.Lock()
-	defer e.logger.mu.Unlock()
-
-	te, err := e.logger.Formatter.Format(e)
-	if err != nil {
-		te = []byte(fmt.Sprintf("failed formatting log entry: %v\n", e))
-	}
-
-	_, err = e.logger.Out.Write([]byte(te))
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "failed writing to log: %s\n", err)
-	}
-}
-
-func (e *Entry) Log(level Level, a ...interface{}) {
-	if !e.logger.isLogged(level) {
-		return
-	}
-
+func (e *Entry) setMessage(a ...interface{}) {
 	if len(a) > 0 {
-		if err, ok := a[0].(error); ok {
-			m := reMySQLError.FindAllStringSubmatch(err.Error(), -1)
-			if m != nil && len(m[0]) == 3 {
-				e.Message = m[0][2]
-				e.ErrCode = m[0][1]
-				e.Scope = "mysql"
-			} else {
-				e.Message = err.Error()
-			}
-		} else {
-			e.Message = fmt.Sprint(a...)
-		}
-	} else {
-		e.Message = fmt.Sprint(a...)
+		e.message = fmt.Sprint(a...)
 	}
-
-	e.log(level)
 }
 
-func (e *Entry) Logf(level Level, format string, a ...interface{}) {
-	if !e.logger.isLogged(level) {
-		return
+func (e *Entry) setMessagef(format string, a ...interface{}) {
+	if format != "" {
+		e.message = fmt.Sprintf(format, a...)
 	}
-
-	e.Log(level, fmt.Sprintf(format, a...))
 }
 
 func (e *Entry) WithField(name string, value interface{}) *Entry {
@@ -159,43 +108,86 @@ func (e *Entry) WithScope(scope string) *Entry {
 }
 
 func (e *Entry) WithError(err error) *Entry {
-	if err != nil {
-		e.Fields[FieldError] = err.Error()
+	if err == nil {
+		return e
 	}
+
+	m := reMySQLError.FindAllStringSubmatch(err.Error(), -1)
+	if m != nil && len(m[0]) == 3 {
+		e.message = m[0][2]
+		e.ErrCode = m[0][1]
+		e.Scope = "mysql"
+	} else {
+		e.message = err.Error()
+	}
+	e.WithField(FieldError, e.message)
 
 	return e
 }
 
+func (e *Entry) output(level Level) {
+	e.Level = level
+	e.logger.output(4, e)
+}
+
 func (e *Entry) Error(a ...interface{}) {
-	e.Log(ErrorLevel, a...)
+	e.setMessage(a...)
+	e.output(ErrorLevel)
 }
 
 func (e *Entry) Errorf(format string, a ...interface{}) {
-	e.Logf(ErrorLevel, format, a...)
+	e.setMessagef(format, a...)
+	e.output(ErrorLevel)
 }
 
 func (e *Entry) Warn(a ...interface{}) {
-	e.Log(WarnLevel, a...)
+	e.setMessage(a...)
+	e.output(WarnLevel)
 }
 
 func (e *Entry) Warnf(format string, a ...interface{}) {
-	e.Logf(WarnLevel, format, a...)
+	e.setMessagef(format, a...)
+	e.output(WarnLevel)
 }
 
 func (e *Entry) Info(a ...interface{}) {
-	e.Log(InfoLevel, a...)
+	e.setMessage(a...)
+	e.output(InfoLevel)
 }
 
 func (e *Entry) Infof(format string, a ...interface{}) {
-	e.Logf(InfoLevel, format, a...)
+	e.setMessagef(format, a...)
+	e.output(InfoLevel)
 }
 
 func (e *Entry) Debug(a ...interface{}) {
-	e.Log(DebugLevel, a...)
+	e.setMessage(a...)
+	e.output(DebugLevel)
 }
 
 func (e *Entry) Debugf(format string, a ...interface{}) {
-	e.Logf(DebugLevel, format, a...)
+	e.setMessagef(format, a...)
+	e.output(DebugLevel)
+}
+
+func (e *Entry) Panic(a ...interface{}) {
+	e.setMessage(a...)
+	e.output(PanicLevel)
+}
+
+func (e *Entry) Panicf(format string, a ...interface{}) {
+	e.setMessagef(format, a...)
+	e.output(PanicLevel)
+}
+
+func (e *Entry) Fatal(a ...interface{}) {
+	e.setMessage(a...)
+	e.output(FatalLevel)
+}
+
+func (e *Entry) Fatalf(format string, a ...interface{}) {
+	e.setMessagef(format, a...)
+	e.output(FatalLevel)
 }
 
 func (e *Entry) UnmarshalJSON(data []byte) error {
@@ -208,7 +200,7 @@ func (e *Entry) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	e.Message = res.Message
+	e.message = res.message
 	e.Time = res.Time
 	e.Level = res.Level
 	e.Scope = res.Scope

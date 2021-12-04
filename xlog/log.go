@@ -3,10 +3,13 @@
 package xlog
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"runtime"
+	"runtime/debug"
 	"sync"
 )
 
@@ -51,9 +54,12 @@ func (l *Logger) SetFormatter(f Formatter) {
 	l.Formatter = f
 }
 
-// isLogged returns true if level has to be logged.
-func (l *Logger) isLogged(level Level) bool {
-	return l.level >= level
+// isWritten returns true if level has to be written.
+func (l *Logger) isWritten(level Level) bool {
+	if l.level == 0 {
+		return level >= defaultLogLevel
+	}
+	return level >= l.level
 }
 
 // WithError returns an entry with value of field 'error' set to err.
@@ -71,19 +77,37 @@ func (l *Logger) WithFields(fields Fields) *Entry {
 }
 
 // Logf logs according to a format specifier, and optional arguments, for given level.
-func (l *Logger) Logf(level Level, format string, a ...interface{}) {
-	if l.isLogged(level) {
-		entry := l.NewEntry()
-		entry.Logf(level, format, a...)
-	}
+func (l *Logger) logf(callDepth int, level Level, format string, a ...interface{}) {
+	entry := l.NewEntry()
+	entry.Level = level
+	entry.setMessagef(format, a...)
+	l.output(callDepth, entry)
 }
 
-// Logf logs using optional arguments, for given level.
+// Log logs then entry according to a level using provided operands.
+func (l *Logger) log(callDepth int, level Level, a ...interface{}) {
+	entry := l.NewEntry()
+	entry.Level = level
+	entry.setMessage(a...)
+	l.output(callDepth, entry)
+}
+
+// Logf logs according to a format specifier, and optional arguments, for given level.
+func (l *Logger) Logf(level Level, format string, a ...interface{}) {
+	l.logf(2, level, format, a...)
+}
+
+// Log logs then entry according to a level using provided operands.
 func (l *Logger) Log(level Level, a ...interface{}) {
-	if l.isLogged(level) {
-		entry := l.NewEntry()
-		entry.Log(level, a...)
-	}
+	l.log(2, level, a...)
+}
+
+func (l *Logger) Fatal(a ...interface{}) {
+	l.Log(FatalLevel, a...)
+}
+
+func (l *Logger) Fatalf(format string, a ...interface{}) {
+	l.Logf(FatalLevel, format, a...)
 }
 
 func (l *Logger) Panic(a ...interface{}) {
@@ -132,4 +156,69 @@ func (l *Logger) Print(v ...interface{}) {
 
 func (l *Logger) Printf(format string, v ...interface{}) {
 	log.Printf(format, v...)
+}
+
+func (l *Logger) output(callDepth int, e *Entry) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if e.Level == PanicLevel {
+		// inspired by Go's log package
+		l.mu.Unlock()
+		var ok bool
+		_, file, line, ok := runtime.Caller(callDepth)
+		if !ok {
+			file = "???"
+			line = 0
+		}
+		l.mu.Lock()
+		e.WithField(FieldFileLine, fmt.Sprintf("%s:%d", file, line))
+	}
+
+	if e.Time.IsZero() {
+		e.Time = e.getLogTime()
+	}
+
+	if e.Scope == "" {
+		e.Scope = e.logger.Scope // which can be empty
+	}
+
+	writable := l.isWritten(e.Level)
+
+	switch e.Level {
+	case PanicLevel:
+		if writable {
+			defer func() {
+				if r := recover(); r == nil {
+					lines := bytes.Split(debug.Stack(), []byte("\n"))
+					e.WithField(FieldStack, string(bytes.Join(lines, []byte("\\n"))))
+					l.write(e)
+					panic(e.message)
+				}
+			}()
+		} else {
+			panic(e.message)
+		}
+	case FatalLevel:
+		if writable {
+			l.write(e)
+		}
+		os.Exit(1)
+	default:
+		if writable {
+			l.write(e)
+		}
+	}
+}
+
+func (l *Logger) write(e *Entry) {
+	te, err := l.Formatter.Format(e)
+	if err != nil {
+		te = []byte(fmt.Sprintf("failed formatting log entry: %v\n", e))
+	}
+
+	_, err = l.Out.Write(te)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "failed writing to log: %s\n", err)
+	}
 }

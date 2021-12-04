@@ -32,7 +32,7 @@ var (
 	styleGray      = xansi.Render{xansi.BrightBlack}
 )
 
-func (tf *TextFormat) fullFields(e Entry) ([]byte, error) {
+func (tf *TextFormat) fullFields(e *Entry) ([]byte, error) {
 	var buf = bytes.Buffer{}
 
 	// built-in fields come first
@@ -41,7 +41,7 @@ func (tf *TextFormat) fullFields(e Entry) ([]byte, error) {
 	if e.Scope != "" {
 		writeField(&buf, FieldScope, tf.serializeFieldValue(e.Scope))
 	}
-	writeField(&buf, FieldMsg, tf.serializeFieldValue(e.Message))
+	writeField(&buf, FieldMsg, tf.serializeFieldValue(e.message))
 	if e.ErrCode != "" {
 		writeField(&buf, FieldErrCode, tf.serializeFieldValue(e.ErrCode))
 	}
@@ -52,7 +52,7 @@ func (tf *TextFormat) fullFields(e Entry) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (tf *TextFormat) textCompact(e Entry) ([]byte, error) {
+func (tf *TextFormat) textCompact(e *Entry) ([]byte, error) {
 	var buf = bytes.Buffer{}
 
 	tf.TimeFormat = time.RFC3339
@@ -69,7 +69,7 @@ func (tf *TextFormat) textCompact(e Entry) ([]byte, error) {
 
 	writeField(&buf, "", levelStyle.Sprintf("[%-5s]", strings.ToUpper(tf.serializeFieldValue(e.Level))))
 	buf.WriteString(xansi.Reset())
-	writeField(&buf, "", msgStyle.Sprintf("%-*s |", 50, e.Message))
+	writeField(&buf, "", msgStyle.Sprintf("%-*s |", 50, e.message))
 	buf.WriteString(xansi.Reset())
 
 	if e.Scope != "" {
@@ -82,7 +82,7 @@ func (tf *TextFormat) textCompact(e Entry) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (tf *TextFormat) writeFields(buf *bytes.Buffer, e Entry) {
+func (tf *TextFormat) writeFields(buf *bytes.Buffer, e *Entry) {
 	for k, v := range e.Fields {
 		if reservedFields[k] {
 			k = "_" + k
@@ -91,7 +91,7 @@ func (tf *TextFormat) writeFields(buf *bytes.Buffer, e Entry) {
 	}
 }
 
-func (tf *TextFormat) Format(e Entry) ([]byte, error) {
+func (tf *TextFormat) Format(e *Entry) ([]byte, error) {
 	if tf.TimeFormat == "" {
 		tf.TimeFormat = time.RFC3339Nano
 	}

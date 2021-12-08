@@ -10,7 +10,7 @@ import (
 
 var reISO4217CurrencyCode = regexp.MustCompile(`^[A-Z]{3}$`)
 
-// iso4217Currency hold known currencies and their (english) name.
+// iso4217Currency holds known currencies and their (english) name.
 // Source: https://www.iso.org/iso-4217-currency-codes.html
 var iso4217Currency = map[string]string{
 	"AED": "UAE Dirham",

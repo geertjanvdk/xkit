@@ -4,6 +4,8 @@ package xt
 
 import "testing"
 
+// Assert tests if condition is true. When not, messages are displayed.
+// This is equivalent as Eq(t, true, condition, messages...).
 func Assert(t *testing.T, condition bool, messages ...string) {
 	TestHelper(t)
 

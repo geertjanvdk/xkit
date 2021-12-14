@@ -1,11 +1,9 @@
 // Copyright (c) 2020, Geert JM Vanderkelen
 
-package xhttp
-
 /*
 Package xhttp contains tools and helper functions around the Go http package.
 
-HTTP Client
+### HTTP Client
 
 Creating a HTTP client is done using the `NewClient` function. It takes functional
 options so that it is easier to configure.
@@ -25,3 +23,4 @@ The following functional options are available:
 - WithBearer(string)
 
 */
+package xhttp

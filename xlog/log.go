@@ -10,24 +10,48 @@ import (
 	"os"
 	"runtime"
 	"runtime/debug"
+	"sort"
 	"sync"
 )
 
+type activeLevels map[Level]bool
+
+func newActiveLevels() activeLevels {
+	al := activeLevels{}
+	for level, active := range defaultActiveLevels {
+		al[level] = active
+	}
+
+	return al
+}
+
+type levelSort []Level
+
+func (s levelSort) Len() int {
+	return len(s)
+}
+func (s levelSort) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s levelSort) Less(i, j int) bool {
+	return int(s[i]) < int(s[j])
+}
+
 type Logger struct {
-	mu        sync.Mutex
-	level     Level
-	Out       io.Writer
-	Formatter Formatter
-	Scope     string
-	UseUTC    bool
+	mu           sync.Mutex
+	Out          io.Writer
+	Formatter    Formatter
+	Scope        string
+	UseUTC       bool
+	activeLevels activeLevels
 }
 
 func New() *Logger {
 	return &Logger{
-		level:     defaultLogLevel,
-		Formatter: defaultLogger.Formatter,
-		Out:       os.Stderr,
-		UseUTC:    true,
+		Formatter:    defaultLogger.Formatter,
+		Out:          os.Stderr,
+		UseUTC:       true,
+		activeLevels: newActiveLevels(),
 	}
 }
 
@@ -35,31 +59,65 @@ func (l *Logger) NewEntry() *Entry {
 	return newEntry(l)
 }
 
-// Level returns log level of l.
-func (l *Logger) Level() Level {
-	return l.level
+// Levels returns the active levels. The result is sorted.
+func (l *Logger) Levels() []Level {
+	var res []Level
+	for level, active := range l.activeLevels {
+		if active {
+			res = append(res, level)
+		}
+	}
+	sort.Sort(levelSort(res))
+	return res
 }
 
-// SetLevel sets the log level of l.
-func (l *Logger) SetLevel(level Level) Level {
-	if _, ok := levelName[level]; !ok {
-		panic(fmt.Sprintf("xlog: invalid log level; was %d", level))
+// LevelsAsStrings returns the active levels their names. The result
+// is sorted.
+func (l *Logger) LevelsAsStrings() []string {
+	var res []string
+	for _, level := range l.Levels() {
+		res = append(res, levelName[level])
 	}
-	l.level = level
-	return l.level
+	sort.Strings(res)
+	return res
+}
+
+// ActivateLevels is used to activate particular levels of l.
+// For example, ActivateLevels(DebugLevel) can be used  if
+// the logger logs errors, but debug message are wanted, without
+// info messages.
+func (l *Logger) ActivateLevels(levels ...Level) {
+	if l.activeLevels == nil {
+		l.activeLevels = defaultActiveLevels
+	}
+
+	for _, level := range levels {
+		if !(level >= lowestLevel && level <= highestLevel || level == DefaultLevel) {
+			panic(fmt.Sprintf("xlog: invalid log level; was %d", level))
+		}
+		l.activeLevels[level] = true
+	}
+}
+
+// DeactivateLevels is used to deactivate particular levels of l.
+// For example, DeactivateLevels(DebugLevel) can be used to deactivate all
+// debugging messages.
+func (l *Logger) DeactivateLevels(levels ...Level) {
+	if l.activeLevels == nil {
+		l.activeLevels = defaultActiveLevels
+	}
+
+	for _, level := range levels {
+		if !(level >= lowestLevel && level <= highestLevel) {
+			panic(fmt.Sprintf("xlog: invalid log level; was %d", level))
+		}
+		l.activeLevels[level] = false
+	}
 }
 
 // SetFormatter sets f as formatter for l.
 func (l *Logger) SetFormatter(f Formatter) {
 	l.Formatter = f
-}
-
-// isWritten returns true if level has to be written.
-func (l *Logger) isWritten(level Level) bool {
-	if l.level == 0 {
-		return level >= defaultLogLevel
-	}
-	return level >= l.level
 }
 
 // WithError returns an entry with value of field 'error' set to err.
@@ -183,7 +241,7 @@ func (l *Logger) output(callDepth int, e *Entry) {
 		e.Scope = e.logger.Scope // which can be empty
 	}
 
-	writable := l.isWritten(e.Level)
+	writable := l.activeLevels[e.Level]
 
 	switch e.Level {
 	case PanicLevel:

@@ -12,16 +12,6 @@ import (
 	"github.com/geertjanvdk/xkit/xt"
 )
 
-func TestSetGetLevel(t *testing.T) {
-	defer func() { defaultLogger.level = defaultLogLevel }()
-
-	xt.Eq(t, defaultLogLevel, defaultLogger.level)
-	SetLevel(DebugLevel)
-	xt.Eq(t, DebugLevel, GetLevel())
-	SetLevel(defaultLogLevel)
-	xt.Eq(t, defaultLogLevel, defaultLogger.level)
-}
-
 func TestSetGetOut(t *testing.T) {
 	defer func() { defaultLogger.Out = os.Stderr }()
 	out := &bytes.Buffer{}
@@ -126,7 +116,7 @@ func TestPanic(t *testing.T) {
 	t.Run("panics are not logged; but panic anyway", func(t *testing.T) {
 		defer func() {
 			defaultLogger.Out = os.Stderr
-			defaultLogger.SetLevel(defaultLogLevel)
+			defaultLogger.activeLevels = defaultActiveLevels
 		}()
 
 		out := &bytes.Buffer{}
@@ -141,9 +131,9 @@ func TestPanic(t *testing.T) {
 	t.Run("panics are logged when asked", func(t *testing.T) {
 		defer func() {
 			defaultLogger.Out = os.Stderr
-			defaultLogger.SetLevel(defaultLogLevel)
+			defaultLogger.activeLevels = defaultActiveLevels
 		}()
-		defaultLogger.SetLevel(PanicLevel)
+		defaultLogger.ActivateLevels(PanicLevel)
 
 		out := &bytes.Buffer{}
 		SetOut(out)
@@ -160,8 +150,9 @@ func TestPanicf(t *testing.T) {
 	t.Run("panics are not logged; but panic anyway", func(t *testing.T) {
 		defer func() {
 			defaultLogger.Out = os.Stderr
-			defaultLogger.SetLevel(defaultLogLevel)
+			defaultLogger.activeLevels = defaultActiveLevels
 		}()
+		DeactivateLevels(PanicLevel) // default, but make sure
 
 		out := &bytes.Buffer{}
 		SetOut(out)
@@ -175,9 +166,9 @@ func TestPanicf(t *testing.T) {
 	t.Run("panics are logged when asked", func(t *testing.T) {
 		defer func() {
 			defaultLogger.Out = os.Stderr
-			defaultLogger.SetLevel(defaultLogLevel)
+			defaultLogger.activeLevels = defaultActiveLevels
 		}()
-		defaultLogger.SetLevel(PanicLevel)
+		ActivateLevels(PanicLevel)
 
 		out := &bytes.Buffer{}
 		SetOut(out)
@@ -258,9 +249,13 @@ func TestWarnf(t *testing.T) {
 }
 
 func TestDebug(t *testing.T) {
-	defer func() { defaultLogger.Out = os.Stderr }()
+	defer func() {
+		defaultLogger.Out = os.Stderr
+		defaultLogger.activeLevels = defaultActiveLevels
+	}()
 	out := &bytes.Buffer{}
 	SetOut(out)
+	ActivateLevels(DebugLevel)
 
 	Debug("I am debug")
 	expNeedles := []string{
@@ -275,9 +270,13 @@ func TestDebug(t *testing.T) {
 }
 
 func TestDebugf(t *testing.T) {
-	defer func() { defaultLogger.Out = os.Stderr }()
+	defer func() {
+		defaultLogger.Out = os.Stderr
+		defaultLogger.activeLevels = defaultActiveLevels
+	}()
 	out := &bytes.Buffer{}
 	SetOut(out)
+	ActivateLevels(DebugLevel)
 
 	Debugf("I am %s", "debug")
 	expNeedles := []string{

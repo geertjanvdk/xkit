@@ -6,33 +6,30 @@ import (
 	"io"
 )
 
-type Level int
-
-const (
-	FatalLevel Level = -1 // exits
-	PanicLevel Level = 1
-	ErrorLevel Level = 2
-	WarnLevel  Level = 3
-	InfoLevel  Level = 4
-	DebugLevel Level = 5
-)
-
-var levelName = map[Level]string{
-	PanicLevel: "panic",
-	ErrorLevel: "error",
-	WarnLevel:  "warn",
-	InfoLevel:  "info",
-	DebugLevel: "debug",
+// ActivateLevels is used to activate particular levels of the default logger.
+// For example, ActivateLevels(DebugLevel) can be used  if
+// the logger logs errors, but debug message are wanted, without
+// info messages.
+func ActivateLevels(levels ...Level) {
+	defaultLogger.ActivateLevels(levels...)
 }
 
-// SetLevel sets the level of the default logger.
-func SetLevel(level Level) {
-	defaultLogger.SetLevel(level)
+// DeactivateLevels is used to deactivate particular levels of the default logger.
+// For example, DeactivateLevels(DebugLevel) can be used to deactivate all
+// debugging messages.
+func DeactivateLevels(levels ...Level) {
+	defaultLogger.DeactivateLevels(levels...)
 }
 
-// GetLevel returns the level of the default logger.
-func GetLevel() Level {
-	return defaultLogger.Level()
+// Levels returns the active levels.
+func Levels() []Level {
+	return defaultLogger.Levels()
+}
+
+// LevelsAsStrings returns the active levels their names. The result
+// is sorted.
+func LevelsAsStrings() []string {
+	return defaultLogger.LevelsAsStrings()
 }
 
 // SetOut sets where the output of the default logger goes to.

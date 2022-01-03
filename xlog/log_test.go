@@ -20,7 +20,7 @@ func TestLogger_Logf(t *testing.T) {
 		l.Out = out
 
 		for _, level := range []Level{ErrorLevel, WarnLevel, InfoLevel, DebugLevel} {
-			l.level = level
+			l.ActivateLevels(level)
 			ln := levelName[level]
 			t.Run("level "+ln, func(t *testing.T) {
 				expFormat := "%s log entry"
@@ -41,7 +41,7 @@ func TestLogger_Logf(t *testing.T) {
 
 		l := New()
 		l.Out = out
-		l.SetLevel(PanicLevel)
+		l.ActivateLevels(PanicLevel)
 
 		xt.Panics(t, func() {
 			l.Logf(PanicLevel, "this is a panic entry log")
@@ -81,5 +81,55 @@ func TestLogger_WithError(t *testing.T) {
 		exp := `^time=.*?\s{1}level=info msg="no error field" err="this is an error"$`
 		got := strings.TrimSpace(out.String())
 		xt.Match(t, exp, got, fmt.Sprintf("got: %s", got))
+	})
+}
+
+func TestLogger_ActivateLevels(t *testing.T) {
+	t.Run("can (de)activate one", func(t *testing.T) {
+		l := New()
+		xt.Assert(t, !l.activeLevels[DebugLevel])
+
+		l.ActivateLevels(DebugLevel)
+		xt.Assert(t, l.activeLevels[DebugLevel])
+
+		l.DeactivateLevels(DebugLevel)
+		xt.Assert(t, !l.activeLevels[DebugLevel])
+	})
+
+	t.Run("can (de)activate multiple", func(t *testing.T) {
+		l := New()
+		xt.Assert(t, !l.activeLevels[DebugLevel])
+		xt.Assert(t, !l.activeLevels[PanicLevel])
+
+		l.ActivateLevels(DebugLevel, PanicLevel)
+		xt.Assert(t, l.activeLevels[DebugLevel])
+		xt.Assert(t, l.activeLevels[PanicLevel])
+
+		l.DeactivateLevels(PanicLevel, DebugLevel)
+		xt.Assert(t, !l.activeLevels[DebugLevel])
+		xt.Assert(t, !l.activeLevels[PanicLevel])
+	})
+}
+
+func TestLogger_Levels(t *testing.T) {
+	t.Run("default active levels", func(t *testing.T) {
+		exp := []Level{-1, 1, 2, 3}
+		got := Levels()
+		xt.Eq(t, exp, got)
+	})
+
+	t.Run("default active levels their names", func(t *testing.T) {
+		exp := []string{"error", "fatal", "info", "warn"}
+		got := LevelsAsStrings()
+		xt.Eq(t, exp, got)
+	})
+
+	t.Run("deactivate info, activate debug", func(t *testing.T) {
+		l := New()
+		l.DeactivateLevels(InfoLevel)
+		l.ActivateLevels(DebugLevel)
+		exp := []string{"debug", "error", "fatal", "warn"}
+		got := l.LevelsAsStrings()
+		xt.Eq(t, exp, got)
 	})
 }

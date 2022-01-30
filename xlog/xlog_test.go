@@ -55,17 +55,20 @@ func TestWithFields(t *testing.T) {
 	fields := Fields{
 		"field1": "value1",
 		"field2": 1234,
+		"field3": true,
 	}
 
 	entry := WithFields(fields)
 	xt.Eq(t, fields["field1"], entry.Fields["field1"])
 	xt.Eq(t, fields["field2"], entry.Fields["field2"])
+	xt.Eq(t, fields["field3"], entry.Fields["field3"])
 	entry.Info("test TestWithFields")
 
 	expNeedles := []string{
 		`msg="test TestWithFields"`,
 		`field1="value1"`,
 		`field2=1234`,
+		`field3=true`,
 	}
 
 	got := out.String()

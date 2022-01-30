@@ -128,6 +128,8 @@ func (tf *TextFormat) serializeFieldValue(value interface{}) string {
 		return v.Format(tf.TimeFormat)
 	case time.Duration:
 		return v.String()
+	case bool, *bool:
+		return fmt.Sprintf("%v", v)
 	default:
 		switch v := numTo64(value).(type) {
 		case int64:
